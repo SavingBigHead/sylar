@@ -1,5 +1,6 @@
 #include "log.h"
 
+#include <bits/types/locale_t.h>
 #include <cctype>
 #include <functional>
 #include <iostream>
@@ -86,11 +87,20 @@ public:
 
 class DataTimeFromatItem : public LogFormatter::FormatItem {
 public:
-  DataTimeFromatItem(const std::string &format = "%Y:%m:%d %H:%M:%S")
-      : format_(format) {};
+  DataTimeFromatItem(const std::string &format = "%Y-%m-%d %H:%M:%S")
+      : format_(format) {
+    if (format_.empty()) {
+      format_ = "%Y-%m-%d %H:%M:%S";
+    }
+  };
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
-    os << event->getFiberId();
+    struct tm tm;
+    time_t time = event->getTime();
+    localtime_r(&time, &tm);
+    char buf[64];
+    strftime(buf, sizeof(buf), format_.c_str(), &tm);
+    os << buf;
   }
 
 private:
@@ -126,7 +136,7 @@ public:
 
 class StringFromatItem : public LogFormatter::FormatItem {
 public:
-  StringFromatItem(const std::string &str) : FormatItem(str), string_(str) {}
+  StringFromatItem(const std::string &str) : string_(str) {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << string_;
@@ -136,9 +146,19 @@ private:
   std::string string_;
 };
 
-Logger::Logger(const std::string &name) : name_(name) {}
+LogEvent::LogEvent(const char *file, int32_t line, uint32_t elapse,
+                   uint32_t threadId, uint32_t fiberId, uint64_t time)
+    : file_(file), line_(line), elapse_(elapse), threadId_(threadId),
+      fiberId_(fiberId), time_(time) {}
+
+Logger::Logger(const std::string &name) : name_(name), level_(LogLevel::DEBUG) {
+  formatter_.reset(new LogFormatter("%d [%p] <%f:%l> %m %n"));
+}
 
 void Logger::addAppender(LogAppender::ptr appender) {
+  if (!appender->getFormatter()) {
+    appender->setFormatter(formatter_);
+  }
   appenders_.push_back(appender);
 }
 
@@ -168,14 +188,14 @@ void Logger::info(LogEvent::ptr event) {
   this->log(LogLevel::Level::INFO, event);
 }
 
-void Logger::warn(LogEvent::ptr) {}
+void Logger::warn(LogEvent::ptr event) { log(LogLevel::WARN, event); }
 
-void Logger::error(LogEvent::ptr) {}
+void Logger::error(LogEvent::ptr event) { log(LogLevel::ERROR, event); }
 
-void Logger::fatal(LogEvent::ptr) {}
+void Logger::fatal(LogEvent::ptr event) { log(LogLevel::FATAL, event); }
 
-void StdoutLogAppender::log(std::shared_ptr<Logger> logger,
-                            LogLevel::Level level, LogEvent::ptr event) {
+void StdoutLogAppender::log(Logger::ptr logger, LogLevel::Level level,
+                            LogEvent::ptr event) {
   if (level >= level_) {
     std::cout << format_->format(logger, level, event);
   }
@@ -183,7 +203,7 @@ void StdoutLogAppender::log(std::shared_ptr<Logger> logger,
 
 FileLogAppender::FileLogAppender(const std::string &name) : file_name_(name) {}
 
-void FileLogAppender::log(std::shared_ptr<Logger> logger, LogLevel::Level level,
+void FileLogAppender::log(Logger::ptr logger, LogLevel::Level level,
                           LogEvent::ptr event) {
   if (level >= level_) {
     file_stream_ << format_->format(logger, level, event);
@@ -198,7 +218,9 @@ auto FileLogAppender::reopen() -> bool {
   return !!file_stream_;
 }
 
-LogFormatter::LogFormatter(const std::string &pattern) : pattern_(pattern) {}
+LogFormatter::LogFormatter(const std::string &pattern) : pattern_(pattern) {
+  init();
+}
 auto LogFormatter::format(std::shared_ptr<Logger> logger, LogLevel::Level level,
                           LogEvent::ptr event) -> std::string {
   std::stringstream ss;
@@ -235,7 +257,7 @@ auto LogFormatter::init() -> void {
     std::string fmt;
 
     while (n < pattern_.size()) {
-      if (isspace(pattern_[n])) {
+      if (!isalpha(pattern_[n]) && pattern_[n] != '{' && pattern_[n] != '}') {
         break;
       }
 
@@ -256,15 +278,17 @@ auto LogFormatter::init() -> void {
           break;
         }
       }
+      ++n;
     }
 
     if (fmt_status == 0) {
       if (!nstr.empty()) {
         vec.push_back(std::make_tuple(nstr, "", 0));
+        nstr.clear();
       }
       str = pattern_.substr(i + 1, n - i - 1);
       vec.push_back(std::make_tuple(str, fmt, 1));
-      i = n;
+      i = n - 1;
     } else if (fmt_status == 1) {
       std::cout << "pattern pares error: " << pattern_ << " - "
                 << pattern_.substr(i) << std::endl;
@@ -272,9 +296,10 @@ auto LogFormatter::init() -> void {
     } else if (fmt_status == 2) {
       if (!nstr.empty()) {
         vec.push_back(std::make_tuple(nstr, "", 0));
+        nstr.clear();
       }
       vec.push_back(std::make_tuple(str, fmt, 1));
-      i = n;
+      i = n - 1;
     }
   }
 
@@ -308,8 +333,8 @@ auto LogFormatter::init() -> void {
         items_.push_back(it->second(std::get<1>(i)));
       }
     }
-    std::cout << std::get<0>(i) << " - " << std::get<1>(i) << " - "
-              << std::get<2>(i) << std::endl;
+    std::cout << "(" << std::get<0>(i) << ") - (" << std::get<1>(i) << ") - ("
+              << std::get<2>(i) << ")" << std::endl;
   }
 }
 

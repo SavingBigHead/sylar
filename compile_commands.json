@@ -1,0 +1,11 @@
+[
+{
+  "directory": "/home/meng/sylar",
+  "arguments": ["/usr/sbin/g++", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-Isrc", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/test/linux/x86_64/release/tests/test.cpp.o", "tests/test.cpp"],
+  "file": "tests/test.cpp"
+},
+{
+  "directory": "/home/meng/sylar",
+  "arguments": ["/usr/sbin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/log.cpp.o", "src/log.cpp"],
+  "file": "src/log.cpp"
+}]
