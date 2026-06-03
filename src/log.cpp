@@ -31,63 +31,63 @@ auto LogLevel::ToString(LogLevel::Level level) -> const char * {
   }
 }
 
-class MessageFromatItem : public LogFormatter::FormatItem {
+class MessageFormatItem : public LogFormatter::FormatItem {
 public:
-  MessageFromatItem(const std::string &str = "") {}
+  MessageFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getContent();
   }
 };
 
-class LevelFromatItem : public LogFormatter::FormatItem {
+class LevelFormatItem : public LogFormatter::FormatItem {
 public:
-  LevelFromatItem(const std::string &str = "") {}
+  LevelFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << LogLevel::ToString(level);
   }
 };
 
-class ElapseFromatItem : public LogFormatter::FormatItem {
+class ElapseFormatItem : public LogFormatter::FormatItem {
 public:
-  ElapseFromatItem(const std::string &str = "") {}
+  ElapseFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getElapse();
   }
 };
 
-class NameFromatItem : public LogFormatter::FormatItem {
+class NameFormatItem : public LogFormatter::FormatItem {
 public:
-  NameFromatItem(const std::string &str = "") {}
+  NameFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << logger->getName();
   }
 };
 
-class ThreadIdFromatItem : public LogFormatter::FormatItem {
+class ThreadIdFormatItem : public LogFormatter::FormatItem {
 public:
-  ThreadIdFromatItem(const std::string &str = "") {}
+  ThreadIdFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getThreadId();
   }
 };
 
-class FiberFromatItem : public LogFormatter::FormatItem {
+class FiberFormatItem : public LogFormatter::FormatItem {
 public:
-  FiberFromatItem(const std::string &str = "") {}
+  FiberFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getFiberId();
   }
 };
 
-class DataTimeFromatItem : public LogFormatter::FormatItem {
+class DataTimeFormatItem : public LogFormatter::FormatItem {
 public:
-  DataTimeFromatItem(const std::string &format = "%Y-%m-%d %H:%M:%S")
+  DataTimeFormatItem(const std::string &format = "%Y-%m-%d %H:%M:%S")
       : format_(format) {
     if (format_.empty()) {
       format_ = "%Y-%m-%d %H:%M:%S";
@@ -107,36 +107,36 @@ private:
   std::string format_;
 };
 
-class FileNameFromatItem : public LogFormatter::FormatItem {
+class FileNameFormatItem : public LogFormatter::FormatItem {
 public:
-  FileNameFromatItem(const std::string &str = "") {}
+  FileNameFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getFile();
   }
 };
 
-class LineFromatItem : public LogFormatter::FormatItem {
+class LineFormatItem : public LogFormatter::FormatItem {
 public:
-  LineFromatItem(const std::string &str = "") {}
+  LineFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << event->getLine();
   }
 };
 
-class NewLineFromatItem : public LogFormatter::FormatItem {
+class NewLineFormatItem : public LogFormatter::FormatItem {
 public:
-  NewLineFromatItem(const std::string &str = "") {}
+  NewLineFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << std::endl;
   }
 };
 
-class StringFromatItem : public LogFormatter::FormatItem {
+class StringFormatItem : public LogFormatter::FormatItem {
 public:
-  StringFromatItem(const std::string &str) : string_(str) {}
+  StringFormatItem(const std::string &str) : string_(str) {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
     os << string_;
@@ -262,7 +262,7 @@ auto LogFormatter::init() -> void {
       }
 
       if (fmt_status == 0) {
-        if (pattern_[n] == '(') {
+        if (pattern_[n] == '{') {
           str = pattern_.substr(i + 1, n - i - 1);
           fmt_status = 1;
           fmt_begin = n;
@@ -314,21 +314,21 @@ auto LogFormatter::init() -> void {
   {                                                                            \
     #str, [](const std::string &fmt) { return FormatItem::ptr(new C(fmt)); }   \
   }
-          XX(m, MessageFromatItem),  XX(p, LevelFromatItem),
-          XX(r, NameFromatItem),     XX(t, ThreadIdFromatItem),
-          XX(n, NewLineFromatItem),  XX(d, DataTimeFromatItem),
-          XX(f, FileNameFromatItem), XX(l, LineFromatItem),
+          XX(m, MessageFormatItem),  XX(p, LevelFormatItem),
+          XX(r, NameFormatItem),     XX(t, ThreadIdFormatItem),
+          XX(n, NewLineFormatItem),  XX(d, DataTimeFormatItem),
+          XX(f, FileNameFormatItem), XX(l, LineFormatItem),
 #undef XX
       };
 
   for (auto &i : vec) {
     if (std::get<2>(i) == 0) {
-      items_.push_back(FormatItem::ptr(new StringFromatItem(std::get<0>(i))));
+      items_.push_back(FormatItem::ptr(new StringFormatItem(std::get<0>(i))));
     } else {
       auto it = s_format_item.find(std::get<0>(i));
       if (it == s_format_item.end()) {
         items_.push_back(FormatItem::ptr(
-            new StringFromatItem("<<error_format %" + std::get<0>(i) + ">>")));
+            new StringFormatItem("<<error_format %" + std::get<0>(i) + ">>")));
       } else {
         items_.push_back(it->second(std::get<1>(i)));
       }

@@ -14,7 +14,7 @@ namespace sylar {
 class Logger;
 class LogEvent {
 public:
-  LogEvent();
+  LogEvent() {};
   using ptr = std::shared_ptr<LogEvent>;
 
   LogEvent(const char *file, int32_t line, uint32_t elapse, uint32_t threadId,
