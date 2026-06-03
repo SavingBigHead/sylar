@@ -146,13 +146,26 @@ private:
   std::string string_;
 };
 
+class TabFormatItem : public LogFormatter::FormatItem {
+public:
+  TabFormatItem(const std::string &str = "") : string_(str) {}
+  auto format(std::ostream &os, std::shared_ptr<Logger> logger,
+              LogLevel::Level level, LogEvent::ptr event) -> void override {
+    os << '\t';
+  }
+
+private:
+  std::string string_;
+};
+
 LogEvent::LogEvent(const char *file, int32_t line, uint32_t elapse,
                    uint32_t threadId, uint32_t fiberId, uint64_t time)
     : file_(file), line_(line), elapse_(elapse), threadId_(threadId),
       fiberId_(fiberId), time_(time) {}
 
 Logger::Logger(const std::string &name) : name_(name), level_(LogLevel::DEBUG) {
-  formatter_.reset(new LogFormatter("%d [%p] <%f:%l> %m %n"));
+  formatter_.reset(new LogFormatter(
+      "%d{%Y-%m-%d %H:%M:%S}%T%t%T%F%T[%p]%T[%c]%T<%f:%l>%T%m%T%n"));
 }
 
 void Logger::addAppender(LogAppender::ptr appender) {
@@ -257,28 +270,36 @@ auto LogFormatter::init() -> void {
     std::string fmt;
 
     while (n < pattern_.size()) {
-      if (!isalpha(pattern_[n]) && pattern_[n] != '{' && pattern_[n] != '}') {
+      if (!fmt_status && !isalpha(pattern_[n]) && pattern_[n] != '{' &&
+          pattern_[n] != '}') {
+        str = pattern_.substr(i + 1, n - i - 1);
         break;
       }
 
       if (fmt_status == 0) {
         if (pattern_[n] == '{') {
           str = pattern_.substr(i + 1, n - i - 1);
+          // std::cout << "*" << str << std::endl;
           fmt_status = 1;
           fmt_begin = n;
           ++n;
           continue;
         }
-      }
-
-      if (fmt_status == 1) {
+      } else if (fmt_status == 1) {
         if (pattern_[n] == '}') {
           fmt = pattern_.substr(fmt_begin + 1, n - fmt_begin - 1);
-          fmt_status = 2;
+          // std::cout << "#" << fmt << std::endl;
+          fmt_status = 0;
+          ++n;
           break;
         }
       }
       ++n;
+      if (n == pattern_.size()) {
+        if (str.empty()) {
+          str = pattern_.substr(i + 1);
+        }
+      }
     }
 
     if (fmt_status == 0) {
@@ -286,20 +307,12 @@ auto LogFormatter::init() -> void {
         vec.push_back(std::make_tuple(nstr, "", 0));
         nstr.clear();
       }
-      str = pattern_.substr(i + 1, n - i - 1);
       vec.push_back(std::make_tuple(str, fmt, 1));
       i = n - 1;
     } else if (fmt_status == 1) {
       std::cout << "pattern pares error: " << pattern_ << " - "
                 << pattern_.substr(i) << std::endl;
       vec.push_back(std::make_tuple("<<pattern_error>>", fmt, 0));
-    } else if (fmt_status == 2) {
-      if (!nstr.empty()) {
-        vec.push_back(std::make_tuple(nstr, "", 0));
-        nstr.clear();
-      }
-      vec.push_back(std::make_tuple(str, fmt, 1));
-      i = n - 1;
     }
   }
 
@@ -315,9 +328,10 @@ auto LogFormatter::init() -> void {
     #str, [](const std::string &fmt) { return FormatItem::ptr(new C(fmt)); }   \
   }
           XX(m, MessageFormatItem),  XX(p, LevelFormatItem),
-          XX(r, NameFormatItem),     XX(t, ThreadIdFormatItem),
+          XX(c, NameFormatItem),     XX(t, ThreadIdFormatItem),
           XX(n, NewLineFormatItem),  XX(d, DataTimeFormatItem),
           XX(f, FileNameFormatItem), XX(l, LineFormatItem),
+          XX(T, TabFormatItem),      XX(F, FiberFormatItem),
 #undef XX
       };
 
@@ -333,8 +347,9 @@ auto LogFormatter::init() -> void {
         items_.push_back(it->second(std::get<1>(i)));
       }
     }
-    std::cout << "(" << std::get<0>(i) << ") - (" << std::get<1>(i) << ") - ("
-              << std::get<2>(i) << ")" << std::endl;
+    // std::cout << "(" << std::get<0>(i) << ") - (" << std::get<1>(i) << ") -
+    // ("
+    //           << std::get<2>(i) << ")" << std::endl;
   }
 }
 
