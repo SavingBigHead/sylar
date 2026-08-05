@@ -158,10 +158,17 @@ private:
   std::string string_;
 };
 
-LogEvent::LogEvent(const char *file, int32_t line, uint32_t elapse,
-                   uint32_t threadId, uint32_t fiberId, uint64_t time)
+LogEvent::LogEvent(Logger::ptr logger, LogLevel::Level level, const char *file,
+                   int32_t line, uint32_t elapse, uint32_t threadId,
+                   uint32_t fiberId, uint64_t time)
     : file_(file), line_(line), elapse_(elapse), threadId_(threadId),
-      fiberId_(fiberId), time_(time) {}
+      fiberId_(fiberId), time_(time), logger_(logger), level_(level) {}
+
+LogEventWarp::LogEventWarp(LogEvent::ptr p) : event_(p) {}
+LogEventWarp::~LogEventWarp() {
+  event_->getLogger()->log(event_->getLogerLevel(), event_);
+}
+auto LogEventWarp::getSS() -> std::stringstream & { return event_->getSS(); }
 
 Logger::Logger(const std::string &name) : name_(name), level_(LogLevel::DEBUG) {
   formatter_.reset(new LogFormatter(
