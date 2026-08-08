@@ -2,6 +2,8 @@
 
 #include <bits/types/locale_t.h>
 #include <cctype>
+#include <cstdarg>
+#include <cstdio>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -164,11 +166,31 @@ LogEvent::LogEvent(Logger::ptr logger, LogLevel::Level level, const char *file,
     : file_(file), line_(line), elapse_(elapse), threadId_(threadId),
       fiberId_(fiberId), time_(time), logger_(logger), level_(level) {}
 
+auto LogEvent::format(const char *fmt, ...) -> void {
+  va_list al;
+  va_start(al, fmt);
+  format(fmt, al);
+  va_end(al);
+}
+
+auto LogEvent::format(const char *fmt, va_list al) -> void {
+  char *buf = nullptr;
+  int len = vasprintf(&buf, fmt, al);
+  if (len != -1) {
+    ss_ << std::string(buf, len);
+    free(buf);
+  }
+}
+
 LogEventWarp::LogEventWarp(LogEvent::ptr p) : event_(p) {}
+
 LogEventWarp::~LogEventWarp() {
   event_->getLogger()->log(event_->getLogerLevel(), event_);
 }
+
 auto LogEventWarp::getSS() -> std::stringstream & { return event_->getSS(); }
+
+auto LogEventWarp::getEvent() -> LogEvent::ptr { return event_; }
 
 Logger::Logger(const std::string &name) : name_(name), level_(LogLevel::DEBUG) {
   formatter_.reset(new LogFormatter(
@@ -221,7 +243,9 @@ void StdoutLogAppender::log(Logger::ptr logger, LogLevel::Level level,
   }
 }
 
-FileLogAppender::FileLogAppender(const std::string &name) : file_name_(name) {}
+FileLogAppender::FileLogAppender(const std::string &name) : file_name_(name) {
+  reopen();
+}
 
 void FileLogAppender::log(Logger::ptr logger, LogLevel::Level level,
                           LogEvent::ptr event) {
