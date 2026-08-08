@@ -23,6 +23,26 @@
 #define SYLAR_LOG_ERROR(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::ERROR)
 #define SYLAR_LOG_FATAL(logger) SYLAR_LOG_LEVEL(logger, sylar::LogLevel::FATAL)
 
+#define SYLAR_LOG_FORMAT_LEVEL(logger, level, fmt, ...)                        \
+  if (logger->getLevel() <= level)                                             \
+  sylar::LogEventWarp(                                                         \
+      sylar::LogEvent::ptr(new sylar::LogEvent(                                \
+          logger, level, __FILE__, __LINE__, 0, sylar::GetThreadId(),          \
+          sylar::GetFiberId(), time(0))))                                      \
+      .getEvent()                                                              \
+      ->format(fmt, __VA_ARGS__)
+
+#define SYLAR_LOG_FORMAT_DEBUG(logger, fmt, ...)                               \
+  SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::DEBUG, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FORMAT_INFO(logger, fmt, ...)                                \
+  SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::INFO, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FORMAT_WARN(logger, fmt, ...)                                \
+  SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::WARN, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FORMAT_ERROR(logger, fmt, ...)                               \
+  SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::ERROR, fmt, __VA_ARGS__)
+#define SYLAR_LOG_FORMAT_FATAL(logger, fmt, ...)                               \
+  SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::FATAL, fmt, __VA_ARGS__)
+
 namespace sylar {
 
 class Logger;
@@ -63,6 +83,7 @@ public:
   auto getLogerLevel() const -> LogLevel::Level { return level_; }
 
   auto format(const char *fmt, ...) -> void;
+  auto format(const char *fmt, va_list al) -> void;
 
 private:
   const char *file_ = nullptr;
@@ -81,6 +102,7 @@ public:
   LogEventWarp(LogEvent::ptr);
   ~LogEventWarp();
   auto getSS() -> std::stringstream &;
+  auto getEvent() -> LogEvent::ptr;
 
 private:
   LogEvent::ptr event_;
