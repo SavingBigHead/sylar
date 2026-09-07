@@ -384,4 +384,18 @@ auto LogFormatter::init() -> void {
   }
 }
 
+LoggerManger::LoggerManger() {
+  root_.reset(new Logger);
+  root_->addAppender(LogAppender::ptr(new StdoutLogAppender));
+}
+
+auto LoggerManger::getLogger(const std::string &name) -> Logger::ptr {
+  auto it = loggers_.find(name);
+  if (it == loggers_.end()) {
+    return root_;
+  } else {
+    return it->second;
+  }
+}
+
 } // namespace sylar

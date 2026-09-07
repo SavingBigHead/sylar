@@ -1,8 +1,10 @@
 #pragma once
 
+#include "singleton.h"
 #include <cstdint>
 #include <fstream>
 #include <list>
+#include <map>
 #include <memory>
 #include <ostream>
 #include <sstream>
@@ -142,6 +144,9 @@ public:
   auto setFormatter(LogFormatter::ptr val) { format_ = val; }
   auto getFormatter() -> LogFormatter::ptr { return this->format_; }
 
+  auto getLevel() -> LogLevel::Level { return level_; }
+  auto setLevel(LogLevel::Level level) -> void { level_ = level; }
+
 protected:
   LogLevel::Level level_ = LogLevel::DEBUG;
   LogFormatter::ptr format_;
@@ -196,5 +201,18 @@ private:
   std::string file_name_;
   std::ofstream file_stream_;
 };
+
+class LoggerManger {
+public:
+  LoggerManger();
+  auto getLogger(const std::string &name) -> Logger::ptr;
+  auto init() -> void;
+
+private:
+  std::map<std::string, Logger::ptr> loggers_;
+  Logger::ptr root_;
+};
+
+using LoggerMgr = sylar::Singleton<LoggerManger>;
 
 } // namespace sylar

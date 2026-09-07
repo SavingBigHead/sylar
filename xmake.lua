@@ -4,7 +4,7 @@ add_rules("mode.debug", "mode.release")
 
 add_cxxflags("-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function")
 
-add_includedirs("src/")
+add_includedirs("src/log", "src/util")
 
 target("test")
 set_kind("binary")
@@ -13,4 +13,4 @@ add_deps("sylar")
 
 target("sylar")
 set_kind("shared")
-add_files("src/*.cpp")
+add_files("src/log/*.cpp", "src/util/*.cpp")
