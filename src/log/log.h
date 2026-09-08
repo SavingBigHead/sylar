@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "util.h"
 
 #define SYLAR_LOG_LEVEL(logger, level)                                         \
   if (logger->getLevel() <= level)                                             \
@@ -44,6 +45,8 @@
   SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::ERROR, fmt, __VA_ARGS__)
 #define SYLAR_LOG_FORMAT_FATAL(logger, fmt, ...)                               \
   SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::FATAL, fmt, __VA_ARGS__)
+
+#define SYLAR_LOG_ROOT sylar::LoggerMgr::GetInstance()->getRoot()
 
 namespace sylar {
 
@@ -207,6 +210,8 @@ public:
   LoggerManger();
   auto getLogger(const std::string &name) -> Logger::ptr;
   auto init() -> void;
+
+  auto getRoot() { return root_; }
 
 private:
   std::map<std::string, Logger::ptr> loggers_;

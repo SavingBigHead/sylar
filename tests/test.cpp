@@ -1,5 +1,4 @@
 #include "log.h"
-#include "util.h"
 
 auto main() -> int {
   sylar::Logger::ptr log(new sylar::Logger);
