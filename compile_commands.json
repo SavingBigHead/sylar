@@ -1,16 +1,26 @@
 [
 {
   "directory": "/home/meng/sylar",
-  "arguments": ["/usr/sbin/g++", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-Isrc/log", "-Isrc/util", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/test/linux/x86_64/release/tests/test.cpp.o", "tests/test.cpp"],
-  "file": "tests/test.cpp"
+  "arguments": ["/usr/bin/g++", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-Isrc/log", "-Isrc/util", "-Isrc/config", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/test_log/linux/x86_64/release/tests/test_log.cpp.o", "tests/test_log.cpp"],
+  "file": "tests/test_log.cpp"
 },
 {
   "directory": "/home/meng/sylar",
-  "arguments": ["/usr/sbin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc/log", "-Isrc/util", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/log/log.cpp.o", "src/log/log.cpp"],
+  "arguments": ["/usr/bin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc/log", "-Isrc/util", "-Isrc/config", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/log/log.cpp.o", "src/log/log.cpp"],
   "file": "src/log/log.cpp"
 },
 {
   "directory": "/home/meng/sylar",
-  "arguments": ["/usr/sbin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc/log", "-Isrc/util", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/util/util.cpp.o", "src/util/util.cpp"],
+  "arguments": ["/usr/bin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc/log", "-Isrc/util", "-Isrc/config", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/util/util.cpp.o", "src/util/util.cpp"],
   "file": "src/util/util.cpp"
+},
+{
+  "directory": "/home/meng/sylar",
+  "arguments": ["/usr/bin/g++", "-c", "-m64", "-fPIC", "-O3", "-Isrc/log", "-Isrc/util", "-Isrc/config", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/sylar/linux/x86_64/release/src/config/config.cpp.o", "src/config/config.cpp"],
+  "file": "src/config/config.cpp"
+},
+{
+  "directory": "/home/meng/sylar",
+  "arguments": ["/usr/bin/g++", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-Isrc/log", "-Isrc/util", "-Isrc/config", "-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-function", "-DNDEBUG", "-o", "build/.objs/test_config/linux/x86_64/release/tests/test_config.cpp.o", "tests/test_config.cpp"],
+  "file": "tests/test_config.cpp"
 }]
