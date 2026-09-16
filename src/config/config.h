@@ -1,12 +1,15 @@
 #pragma once
 
 #include "log.h"
+#include <algorithm>
 #include <boost/lexical_cast.hpp>
+#include <cctype>
 #include <exception>
 #include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <yaml-cpp/node/node.h>
 
 namespace sylar {
 class ConfigVarBase {
@@ -14,7 +17,9 @@ public:
   using ptr = std::shared_ptr<ConfigVarBase>;
 
   ConfigVarBase(const std::string &name, const std::string &description = "")
-      : name_(name), description_(description) {}
+      : name_(name), description_(description) {
+    std::transform(name_.begin(), name_.end(), name_.begin(), ::tolower);
+  }
 
   virtual ~ConfigVarBase() {}
 
@@ -102,6 +107,9 @@ public:
 
     return v;
   }
+
+  static auto LookupBase(const std::string &name) -> ConfigVarBase::ptr;
+  static auto LoadFromYaml(const YAML::Node &root) -> void;
 
 private:
   static ConfigVarMap datas_;

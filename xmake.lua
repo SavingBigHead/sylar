@@ -6,6 +6,8 @@ add_cxxflags("-rdynamic", "-Wall", "-Wno-deprecated", "-Werror", "-Wno-unused-fu
 
 add_includedirs("src/log", "src/util", "src/config")
 
+add_requires("yaml-cpp")
+
 target("test_log")
 set_kind("binary")
 add_files("tests/test_log.cpp")
@@ -15,7 +17,9 @@ target("test_config")
 set_kind("binary")
 add_files("tests/test_config.cpp")
 add_deps("sylar")
+add_packages("yaml-cpp")
 
 target("sylar")
 set_kind("shared")
 add_files("src/log/*.cpp", "src/util/*.cpp", "src/config/*.cpp")
+add_packages("yaml-cpp")
