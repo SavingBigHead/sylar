@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cast.h"
 #include "log.h"
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -10,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <yaml-cpp/node/node.h>
+#include <yaml-cpp/node/parse.h>
 
 namespace sylar {
 class ConfigVarBase {
@@ -34,7 +36,9 @@ protected:
   std::string description_;
 };
 
-template <typename T> class ConfigVar : public ConfigVarBase {
+template <typename T, typename FromStr = LexicalCast<std::string, T>,
+          typename ToStr = LexicalCast<T, std::string>>
+class ConfigVar : public ConfigVarBase {
 public:
   using ptr = std::shared_ptr<ConfigVar>;
 
@@ -44,7 +48,7 @@ public:
 
   auto toString() -> std::string override {
     try {
-      return boost::lexical_cast<std::string>(val_);
+      return ToStr()(val_);
     } catch (std::exception &e) {
       SYLAR_LOG_ERROR(SYLAR_LOG_ROOT)
           << "ConfigVar::tostring exception" << e.what()
@@ -55,7 +59,7 @@ public:
 
   auto fromString(const std::string &val) -> bool override {
     try {
-      val_ = boost::lexical_cast<T>(val);
+      val_ = FromStr()(val);
       return true;
     } catch (std::exception &e) {
       SYLAR_LOG_ERROR(SYLAR_LOG_ROOT)
@@ -65,7 +69,7 @@ public:
     return false;
   }
 
-  auto getVal() const { return val_; }
+  auto getVal() -> T & { return val_; }
   auto setVal(T &t) { val_ = t; }
 
 private:
@@ -95,7 +99,7 @@ public:
       return temp;
     }
 
-    if (name.find_first_not_of("qwertyuiopasdfghjklzxvbnm._1234567890") !=
+    if (name.find_first_not_of("qwertyuiopasdfghjklzxcvbnm._1234567890") !=
         std::string::npos) {
       SYLAR_LOG_ERROR(SYLAR_LOG_ROOT) << "Lookup name invalid " << name;
       throw std::invalid_argument(name);
