@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
 #include <cctype>
+#include <cstdint>
 #include <exception>
+#include <functional>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -30,6 +32,7 @@ public:
 
   virtual auto toString() -> std::string = 0;
   virtual auto fromString(const std::string &) -> bool = 0;
+  virtual auto getTypeName() const -> std::string = 0;
 
 protected:
   std::string name_;
@@ -41,6 +44,8 @@ template <typename T, typename FromStr = LexicalCast<std::string, T>,
 class ConfigVar : public ConfigVarBase {
 public:
   using ptr = std::shared_ptr<ConfigVar>;
+  using on_change_cb =
+      std::function<void(const T &old_value, const T &new_value)>;
 
   ConfigVar(const std::string &name, const T &default_value,
             const std::string description)
@@ -70,10 +75,33 @@ public:
   }
 
   auto getVal() -> T & { return val_; }
-  auto setVal(T &t) { val_ = t; }
+  auto setVal(T &t) {
+    if (t == val_) {
+      return;
+    }
+    for (auto &i : cbs_) {
+      i.second(val_, t);
+    }
+    val_ = t;
+  }
+  auto getTypeName() const -> std::string { return typeid(val_).name(); }
+
+  auto addListener(uint64_t key, on_change_cb cb) { cbs_[key] = cb; }
+
+  auto delListener(uint64_t key) { cbs_.erase(key); }
+
+  auto getListener(uint64_t key) -> on_change_cb {
+    auto it = cbs_.find(key);
+    if (it != cbs_.end()) {
+      return it->second;
+    } else {
+      return nullptr;
+    }
+  }
 
 private:
   T val_;
+  std::map<uint64_t, on_change_cb> cbs_;
 };
 
 class Config {
@@ -92,11 +120,21 @@ public:
 
   template <typename T>
   static auto Lookup(const std::string &name, const T &default_value,
-                     const std::string &description) {
-    auto temp = Lookup<T>(name);
-    if (temp) {
-      SYLAR_LOG_INFO(SYLAR_LOG_ROOT) << "Lookup name=" << name << " exists";
-      return temp;
+                     const std::string &description) ->
+      typename ConfigVar<T>::ptr {
+    auto it = datas_.find(name);
+    if (it != datas_.end()) {
+      auto temp = std::dynamic_pointer_cast<ConfigVar<T>>(it->second);
+      if (temp) {
+        SYLAR_LOG_INFO(SYLAR_LOG_ROOT) << "Lookup name =" << name << " exists";
+        return temp;
+      } else {
+        SYLAR_LOG_ERROR(SYLAR_LOG_ROOT)
+            << "Lookup name = " << name << " exists but type not "
+            << typeid(T).name()
+            << "real type name: " << it->second->getTypeName();
+        return nullptr;
+      }
     }
 
     if (name.find_first_not_of("qwertyuiopasdfghjklzxcvbnm._1234567890") !=
