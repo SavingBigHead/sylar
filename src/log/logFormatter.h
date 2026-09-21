@@ -20,6 +20,8 @@ public:
 
   auto init() -> void;
 
+  auto isError() -> bool { return error_; }
+
 public:
   class FormatItem {
   public:
@@ -32,6 +34,7 @@ public:
 private:
   std::string pattern_;
   std::vector<FormatItem::ptr> items_;
+  bool error_ = false;
 };
 
 } // namespace sylar

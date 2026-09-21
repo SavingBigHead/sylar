@@ -46,37 +46,46 @@
   SYLAR_LOG_FORMAT_LEVEL(logger, sylar::LogLevel::FATAL, fmt, __VA_ARGS__)
 
 #define SYLAR_LOG_ROOT sylar::LoggerMgr::GetInstance()->getRoot()
+#define SYLAR_LOG_BYNAME(name) sylar::LoggerMgr::GetInstance()->getLogger(name)
 
 namespace sylar {
 
 // 日志器
 class Logger : public std::enable_shared_from_this<Logger> {
+  friend class LoggerManger;
+
 public:
   using ptr = std::shared_ptr<Logger>;
 
   Logger(const std::string &name = "root");
 
-  void log(LogLevel::Level level, LogEvent::ptr event);
+  auto log(LogLevel::Level level, LogEvent::ptr event) -> void;
 
-  void debug(LogEvent::ptr);
-  void info(LogEvent::ptr);
-  void warn(LogEvent::ptr);
-  void error(LogEvent::ptr);
-  void fatal(LogEvent::ptr);
+  auto debug(LogEvent::ptr) -> void;
+  auto info(LogEvent::ptr) -> void;
+  auto warn(LogEvent::ptr) -> void;
+  auto error(LogEvent::ptr) -> void;
+  auto fatal(LogEvent::ptr) -> void;
 
-  void addAppender(LogAppender::ptr);
-  void delAppender(LogAppender::ptr);
+  auto addAppender(LogAppender::ptr) -> void;
+  auto delAppender(LogAppender::ptr) -> void;
+  auto clearAppender() -> void;
 
   LogLevel::Level getLevel() const { return level_; }
   void setLevel(LogLevel::Level val) { level_ = val; }
 
   auto getName() const -> const std::string & { return name_; }
 
+  auto setFormatter(LogFormatter::ptr val) -> void;
+  auto setFormatter(const std::string &val) -> void;
+  auto getFormatter() -> LogFormatter::ptr;
+
 private:
   std::string name_;
   LogLevel::Level level_;
   std::list<LogAppender::ptr> appenders_;
   LogFormatter::ptr formatter_;
+  Logger::ptr root_;
 };
 
 class LoggerManger {

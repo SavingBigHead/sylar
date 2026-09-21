@@ -7,7 +7,6 @@
 #include <string>
 
 namespace sylar {
-
 class Logger;
 // 日志输出地
 class LogAppender {

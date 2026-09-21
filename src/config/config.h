@@ -84,7 +84,9 @@ public:
     }
     val_ = t;
   }
-  auto getTypeName() const -> std::string { return typeid(val_).name(); }
+  auto getTypeName() const -> std::string override {
+    return typeid(val_).name();
+  }
 
   auto addListener(uint64_t key, on_change_cb cb) { cbs_[key] = cb; }
 

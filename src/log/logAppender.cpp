@@ -1,12 +1,14 @@
 #include "logAppender.h"
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace sylar {
 
-auto StdoutLogAppender::log(Logger::ptr logger, LogLevel::Level level,
-                            LogEvent::ptr event) {
+auto StdoutLogAppender::log(std::shared_ptr<Logger> logger,
+                            LogLevel::Level level, LogEvent::ptr event)
+    -> void {
   if (level >= level_) {
     std::cout << format_->format(logger, level, event);
   }
@@ -16,8 +18,8 @@ FileLogAppender::FileLogAppender(const std::string &name) : file_name_(name) {
   reopen();
 }
 
-auto FileLogAppender::log(Logger::ptr logger, LogLevel::Level level,
-                          LogEvent::ptr event) {
+auto FileLogAppender::log(std::shared_ptr<Logger> logger, LogLevel::Level level,
+                          LogEvent::ptr event) -> void {
   if (level >= level_) {
     file_stream_ << format_->format(logger, level, event);
   }

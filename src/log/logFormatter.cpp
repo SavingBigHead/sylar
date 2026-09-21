@@ -1,4 +1,7 @@
 #include "logFormatter.h"
+#include "log.h"
+#include <functional>
+#include <map>
 
 namespace sylar {
 
@@ -34,7 +37,7 @@ public:
   NameFormatItem(const std::string &str = "") {}
   auto format(std::ostream &os, std::shared_ptr<Logger> logger,
               LogLevel::Level level, LogEvent::ptr event) -> void override {
-    os << logger->getName();
+    os << event->getLogger()->getName();
   }
 };
 
@@ -210,6 +213,7 @@ auto LogFormatter::init() -> void {
     } else if (fmt_status == 1) {
       std::cout << "pattern pares error: " << pattern_ << " - "
                 << pattern_.substr(i) << std::endl;
+      error_ = true;
       vec.push_back(std::make_tuple("<<pattern_error>>", fmt, 0));
     }
   }
@@ -241,6 +245,7 @@ auto LogFormatter::init() -> void {
       if (it == s_format_item.end()) {
         items_.push_back(FormatItem::ptr(
             new StringFormatItem("<<error_format %" + std::get<0>(i) + ">>")));
+        error_ = true;
       } else {
         items_.push_back(it->second(std::get<1>(i)));
       }
