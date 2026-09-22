@@ -18,4 +18,18 @@ auto LogLevel::ToString(LogLevel::Level level) -> const char * {
   }
 }
 
+auto LogLevel::FromString(const std::string &level) -> LogLevel::Level {
+#define XX(name)                                                               \
+  if (level == #name) {                                                        \
+    return LogLevel::name;                                                     \
+  }
+  XX(DEBUG);
+  XX(INFO);
+  XX(WARN);
+  XX(ERROR);
+  XX(FATAL);
+  return LogLevel::UNKNOWN;
+#undef XX
+}
+
 } // namespace sylar

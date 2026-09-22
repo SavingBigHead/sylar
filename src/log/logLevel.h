@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace sylar {
 class LogLevel {
@@ -13,5 +14,6 @@ public:
   };
 
   static auto ToString(LogLevel::Level level) -> const char *;
+  static auto FromString(const std::string &) -> LogLevel::Level;
 };
-} // namespace sylae
+} // namespace sylar
