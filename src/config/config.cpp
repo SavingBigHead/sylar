@@ -8,11 +8,10 @@
 #include <yaml-cpp/yaml.h>
 
 namespace sylar {
-Config::ConfigVarMap Config::datas_;
 
 auto Config::LookupBase(const std::string &name) -> ConfigVarBase::ptr {
-  auto it = datas_.find(name);
-  if (it == datas_.end()) {
+  auto it = GetDatas().find(name);
+  if (it == GetDatas().end()) {
     return nullptr;
   } else {
     return it->second;
