@@ -4,7 +4,10 @@
 #include "logFormatter.h"
 #include "logLevel.h"
 #include <bits/types/locale_t.h>
+#include <sstream>
 #include <string>
+#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/node/parse.h>
 
 namespace sylar {
 
@@ -67,6 +70,19 @@ auto Logger::warn(LogEvent::ptr event) -> void { log(LogLevel::WARN, event); }
 auto Logger::error(LogEvent::ptr event) -> void { log(LogLevel::ERROR, event); }
 
 auto Logger::fatal(LogEvent::ptr event) -> void { log(LogLevel::FATAL, event); }
+
+auto Logger::toYamlString() -> std::string {
+  YAML::Node node;
+  node["name"] = name_;
+  node["level"] = LogLevel::ToString(level_);
+  node["formatter"] = formatter_->getPattern();
+  for (auto &i : appenders_) {
+    node["appenders"].push_back(YAML::Load(i->toYamlString()));
+  }
+  std::stringstream ss;
+  ss << node;
+  return ss.str();
+}
 
 struct LogAppenderDefine {
   int type = 0;
@@ -196,23 +212,12 @@ struct LogIniter {
                                [](const std::set<LogDefine> &old_value,
                                   const std::set<LogDefine> &new_value) {
                                  for (auto &i : new_value) {
-                                   auto it = old_value.find(i);
                                    sylar::Logger::ptr logger;
-                                   if (it == old_value.end()) {
-                                     // 新增logger
-                                     logger.reset(new sylar::Logger(i.name));
-                                   } else {
-                                     // 修改
-                                     if (!(i == *it)) {
-                                       logger = SYLAR_LOG_BYNAME(i.name);
-                                     }
-                                   }
-
+                                   logger = SYLAR_LOG_BYNAME(i.name);
                                    logger->setLevel(i.level);
                                    if (!i.formatter.empty()) {
                                      logger->setFormatter(i.formatter);
                                    }
-
                                    logger->clearAppender();
                                    for (auto &a : i.appenders) {
                                      sylar::LogAppender::ptr ap;
@@ -241,6 +246,18 @@ struct LogIniter {
 LoggerManger::LoggerManger() {
   root_.reset(new Logger);
   root_->addAppender(LogAppender::ptr(new StdoutLogAppender));
+
+  loggers_[root_->name_] = root_;
+}
+
+auto LoggerManger::toYamlString() -> std::string {
+  YAML::Node node;
+  for (auto &i : loggers_) {
+    node.push_back(YAML::Load(i.second->toYamlString()));
+  }
+  std::stringstream ss;
+  ss << node;
+  return ss.str();
 }
 
 auto LoggerManger::getLogger(const std::string &name) -> Logger::ptr {

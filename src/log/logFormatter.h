@@ -22,6 +22,8 @@ public:
 
   auto isError() -> bool { return error_; }
 
+  auto getPattern() -> std::string { return pattern_; }
+
 public:
   class FormatItem {
   public:

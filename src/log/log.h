@@ -80,6 +80,8 @@ public:
   auto setFormatter(const std::string &val) -> void;
   auto getFormatter() -> LogFormatter::ptr;
 
+  auto toYamlString() -> std::string;
+
 private:
   std::string name_;
   LogLevel::Level level_;
@@ -95,6 +97,7 @@ public:
   auto init() -> void;
 
   auto getRoot() { return root_; }
+  auto toYamlString() -> std::string;
 
 private:
   std::map<std::string, Logger::ptr> loggers_;

@@ -18,16 +18,22 @@ auto LogLevel::ToString(LogLevel::Level level) -> const char * {
   }
 }
 
-auto LogLevel::FromString(const std::string &level) -> LogLevel::Level {
-#define XX(name)                                                               \
-  if (level == #name) {                                                        \
-    return LogLevel::name;                                                     \
+auto LogLevel::FromString(const std::string &str) -> LogLevel::Level {
+#define XX(level, v)                                                           \
+  if (str == #v) {                                                           \
+    return LogLevel::level;                                                    \
   }
-  XX(DEBUG);
-  XX(INFO);
-  XX(WARN);
-  XX(ERROR);
-  XX(FATAL);
+  XX(DEBUG, debug);
+  XX(INFO, info);
+  XX(WARN, warn);
+  XX(ERROR, error);
+  XX(FATAL, fatal);
+
+  XX(DEBUG, DEBUG);
+  XX(INFO, INFO);
+  XX(WARN, WARN);
+  XX(ERROR, ERROR);
+  XX(FATAL, FATAL);
   return LogLevel::UNKNOWN;
 #undef XX
 }
